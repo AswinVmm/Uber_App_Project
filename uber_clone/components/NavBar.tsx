@@ -28,7 +28,7 @@ function NavBar() {
 
         const email = user?.primaryEmailAddress?.emailAddress;
 
-        if (email === "aswina002@gmail.com") {
+        if (email === "admin@uberclone.com") {//password is admin@134NNN
             setIsAdmin(true);
         }
 
