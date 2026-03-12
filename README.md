@@ -3,5 +3,7 @@ A functional Uber clone project with features like rider and driver dashboard ,p
 
 
 #How to run:-
+
 change the directory, cd Backend and run the command:npx nodemon
+
 open another terminal and change directory, cd uber_clone and run the command:npm run dev
