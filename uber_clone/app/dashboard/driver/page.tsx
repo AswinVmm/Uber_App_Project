@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "@/lib/axios";
 import socket from "@/lib/socket";
 import dynamic from "next/dynamic";
+import { useUser } from "@clerk/nextjs";
 const DriverMap = dynamic(() => import("@/components/DriverMap"), { ssr: false });
 
 interface Ride {
@@ -24,7 +25,7 @@ export default function DriverDashboard() {
     const [rides, setRides] = useState<Ride[]>([]);
     const [activeRide, setActiveRide] = useState<Ride | null>(null);
     const [reachedPickup, setReachedPickup] = useState(false);
-
+    const { user } = useUser();
     useEffect(() => {
 
         socket.on("ride-cancelled", (data: { rideId: string }) => {
@@ -52,7 +53,8 @@ export default function DriverDashboard() {
 
     // 🚘 Accept Ride
     const acceptRide = async (rideId: string) => {
-        const driverId = "driver_123"; // replace with auth later
+
+        const driverId = user?.id;
 
         await axios.post("/api/rides/accept", {
             rideId,
@@ -109,11 +111,11 @@ export default function DriverDashboard() {
     const completeRide = async () => {
         if (!activeRide) return;
 
-        const fare = 250; // you can fetch from DB later
+        const fare = activeRide.fare;
 
         await axios.post("/api/rides/complete", {
             rideId: activeRide.id,
-            fare,
+            fare: activeRide.fare,
         });
 
         alert("Ride Completed!");

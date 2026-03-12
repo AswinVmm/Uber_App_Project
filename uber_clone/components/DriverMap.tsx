@@ -17,6 +17,7 @@ export default function DriverMap({ ride, reachedPickup }: Props) {
     const [driverLocation] = useState({
         lat: 10.7867,
         lng: 76.6548,
+
     });
     const [routeCoords, setRouteCoords] = useState<any[]>([]);
     const [showDriver, setShowDriver] = useState(true);
@@ -115,13 +116,7 @@ export default function DriverMap({ ride, reachedPickup }: Props) {
             {!reachedPickup && showDriver && (
                 <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon} />
             )}
-            {/* <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon} />
-            {!reachedPickup && (
-                <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon} />
-            )}
-            {showDriver && (
-                <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon} />
-            )} */}
+
 
             {/* 🧍 Rider Pickup */}
             <Marker position={[ride.pickupCoords.lat, ride.pickupCoords.lng]} icon={pickupIcon} />

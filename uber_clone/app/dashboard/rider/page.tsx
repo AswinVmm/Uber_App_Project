@@ -2,7 +2,6 @@
 "use client";
 import Booking from "@/components/Booking/Booking";
 import socket from "@/lib/socket";
-// import Map from "@/components/Map";
 import dynamic from "next/dynamic";
 
 const Map = dynamic(() => import("@/components/Map"), {

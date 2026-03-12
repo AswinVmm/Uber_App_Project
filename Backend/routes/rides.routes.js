@@ -119,30 +119,30 @@ router.post("/accept", async (req, res) => {
     }
 });
 
-// =============================
-// ❌ DECLINE RIDE
-// =============================
-router.post("/decline", async (req, res) => {
-    try {
-        const { rideId, driverId } = req.body;
+// // =============================
+// // ❌ DECLINE RIDE
+// // =============================
+// router.post("/decline", async (req, res) => {
+//     try {
+//         const { rideId, driverId } = req.body;
 
-        if (!rideId || !driverId) {
-            return res.status(400).json({ error: "Ride ID and Driver ID required" });
-        }
+//         if (!rideId || !driverId) {
+//             return res.status(400).json({ error: "Ride ID and Driver ID required" });
+//         }
 
-        const rideRef = db.collection("rides").doc(rideId);
+//         const rideRef = db.collection("rides").doc(rideId);
 
-        await rideRef.update({
-            declinedBy: db.FieldValue.arrayUnion(driverId)
-        });
+//         await rideRef.update({
+//             declinedBy: db.FieldValue.arrayUnion(driverId)
+//         });
 
-        res.json({ message: "Ride declined" });
+//         res.json({ message: "Ride declined" });
 
-    } catch (error) {
-        console.error("DECLINE ERROR:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
+//     } catch (error) {
+//         console.error("DECLINE ERROR:", error);
+//         res.status(500).json({ error: error.message });
+//     }
+// });
 
 router.post("/cancel", async (req, res) => {
 
@@ -190,10 +190,17 @@ router.post("/complete", async (req, res) => {
             return res.status(400).json({ error: "Ride not in progress" });
         }
 
+        // await rideRef.update({
+        //     status: "completed",
+        //     fare,
+        //     completedAt: new Date(),
+        // });
         await rideRef.update({
             status: "completed",
             fare,
             completedAt: new Date(),
+            rideDuration: "...",
+            paymentStatus: "paid"
         });
 
         res.json({ message: "Ride completed successfully" });
@@ -201,6 +208,98 @@ router.post("/complete", async (req, res) => {
     } catch (error) {
         console.error("COMPLETE RIDE ERROR:", error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+// =============================
+// 📜 GET RIDER HISTORY
+// =============================
+router.get("/history/:riderId", async (req, res) => {
+    try {
+        const { riderId } = req.params;
+
+        if (!riderId) {
+            return res.status(400).json({ error: "Rider ID required" });
+        }
+
+        const snapshot = await db
+            .collection("rides")
+            .where("riderId", "==", riderId)
+            .get();
+
+        const rides = snapshot.docs.map(doc => {
+            const data = doc.data();
+
+            return {
+                id: doc.id,
+                pickup: data.pickup,
+                drop: data.drop,
+                stops: data.stops || [],
+                fare: data.fare,
+                distanceKm: data.distanceKm,
+                status: data.status,
+                createdAt: data.createdAt,
+                completedAt: data.completedAt || null
+            };
+        }).sort((a, b) => {
+            return b.createdAt?.seconds - a.createdAt?.seconds;
+        });
+        res.json(rides);
+
+    } catch (error) {
+        console.error("RIDER HISTORY ERROR:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// =============================
+// 🚘 GET DRIVER HISTORY
+// =============================
+router.get("/driver-history/:driverId", async (req, res) => {
+    try {
+
+        const { driverId } = req.params;
+
+        if (!driverId) {
+            return res.status(400).json({ error: "Driver ID required" });
+        }
+
+        const snapshot = await db
+            .collection("rides")
+            .where("driverId", "==", driverId)
+            .get();
+
+        const rides = snapshot.docs
+            // .map(doc => ({
+            //     id: doc.id,
+            //     ...doc.data()
+            // }))
+            .map(doc => {
+                const data = doc.data();
+
+                return {
+                    id: doc.id,
+                    pickup: data.pickup,
+                    drop: data.drop,
+                    stops: data.stops || [],
+                    fare: data.fare,
+                    distanceKm: data.distanceKm,
+                    status: data.status,
+                    createdAt: data.createdAt,
+                    completedAt: data.completedAt || null
+                };
+            })
+            .sort((a, b) => {
+                return b.createdAt?.seconds - a.createdAt?.seconds;
+            });
+
+        res.json(rides);
+
+    } catch (error) {
+
+        console.error("DRIVER HISTORY ERROR:", error);
+        res.status(500).json({ error: error.message });
+
     }
 });
 

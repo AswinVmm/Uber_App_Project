@@ -3,3 +3,5 @@
 Backend/.env.local
 Backend/.env
 Backend/
+node_modules/
+.next/

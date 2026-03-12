@@ -29,12 +29,12 @@ export default function Map({ rideId, pickupCoords, dropCoords, stops, setDistan
     const driverLocation = {
         lat: 10.7867,
         lng: 76.6548
+
     };
-    // const [route, setRoute] = useState<LatLng[]>([]);
+
     const [rideRoute, setRideRoute] = useState<LatLng[]>([]);
-    const [driverDistance, setLocalDriverDistance] = useState<number | null>(null);
+    const [localDriverDistance, setLocalDriverDistance] = useState<number | null>(null);
     const [driverRoute, setDriverRoute] = useState<LatLng[]>([]);
-    // const [driverLocation, setDriverLocation] = useState<LatLng | null>(null);
     const driverIcon = new L.Icon({
         iconUrl: "/icons/auto.png",
         iconSize: [40, 40],
@@ -99,7 +99,6 @@ export default function Map({ rideId, pickupCoords, dropCoords, stops, setDistan
 
                 // 🔥 Fare Calculation
                 const baseFare = 30;
-                // const perKmRate = 18;
                 const stopCharge = stops.length * 10;
                 // baseFare + km * perKmRate + stopCharge;
                 const totalFare = baseFare + stopCharge;
@@ -129,33 +128,39 @@ export default function Map({ rideId, pickupCoords, dropCoords, stops, setDistan
     // 📡 Live driver tracking
     useEffect(() => {
         const getDriverRoute = async () => {
-            if (!rideConfirmed) return;
-            if (!pickupCoords) return;
+            try {
+                if (!rideConfirmed) return;
+                if (!pickupCoords) return;
 
-            const res = await axios.get(
-                `http://router.project-osrm.org/route/v1/driving/${driverLocation.lng},${driverLocation.lat};${pickupCoords[1]},${pickupCoords[0]}?overview=full&geometries=geojson`
-            );
+                console.log("Fetching driver route...");
 
-            const data = res.data.routes[0];
-            const driverRoute = data.geometry.coordinates.map((c: number[]) => ({
-                lat: c[1],
-                lng: c[0],
-            }));
-            // setRoute(driverRoute);
-            setDriverRoute(driverRoute);
+                const res = await axios.get(
+                    `http://router.project-osrm.org/route/v1/driving/${driverLocation.lng},${driverLocation.lat};${pickupCoords[1]},${pickupCoords[0]}?overview=full&geometries=geojson`
+                );
 
-            const distance = data.distance / 1000;
-            const duration = data.duration / 60;
+                const data = res.data.routes[0];
+                const driverRoute = data.geometry.coordinates.map((c: number[]) => ({
+                    lat: c[1],
+                    lng: c[0],
+                }));
+                // setRoute(driverRoute);
+                setDriverRoute(driverRoute);
 
-            setLocalDriverDistance(distance);
+                const distance = data.distance / 1000;
+                const duration = data.duration / 60;
 
-            if (setDriverDistance) setDriverDistance(distance);
-            if (setDriverDuration) setDriverDuration(duration);
+                setLocalDriverDistance(distance);
+
+                if (setDriverDistance) setDriverDistance(distance);
+                if (setDriverDuration) setDriverDuration(duration);
+            } catch (err) {
+                console.error("Driver route error:", err);
+            }
         };
 
         getDriverRoute();
 
-    }, [rideConfirmed, pickupCoords]);
+    }, [rideConfirmed, pickupCoords, driverLocation]);
 
     useEffect(() => {
 
@@ -165,6 +170,7 @@ export default function Map({ rideId, pickupCoords, dropCoords, stops, setDistan
 
                 setDriverRoute([]);
                 setLocalDriverDistance(null);
+
 
                 if (setDriverDistance) setDriverDistance(null);
                 if (setDriverDuration) setDriverDuration(null);
@@ -180,17 +186,14 @@ export default function Map({ rideId, pickupCoords, dropCoords, stops, setDistan
             <MapContainer
                 center={[10.7867, 76.6548]} // palakkad default
                 zoom={13}
-                className="h-150 w-full rounded-xl border-2"
+                className="h-185 w-full rounded-xl border-2"
             >
                 <TileLayer className="h-80"
-                    // attribution="© OpenStreetMap contributors"
+
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 {/* Driver */}
-                {/* {rideConfirmed && (
-                    <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon} />
-                )} */}
-                {rideConfirmed && driverDistance !== null && (
+                {rideConfirmed && (
                     <Marker position={[driverLocation.lat, driverLocation.lng]} icon={driverIcon} />
                 )}
 
@@ -216,13 +219,7 @@ export default function Map({ rideId, pickupCoords, dropCoords, stops, setDistan
                 )}
 
                 {/* Route Line */}
-                {/* {route.length > 0 && (
-                    <>
-                        <Polyline positions={route} color="blue" />
-                        <FitRoute coordinates={route} />
-                    </>
-                )} */}
-                {driverRoute.length > 0 && driverDistance !== null && (
+                {driverRoute.length > 0 && (
                     <Polyline positions={driverRoute} color="green" />
                 )}
 

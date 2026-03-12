@@ -27,15 +27,15 @@ interface BookingProps {
 function Booking({ rideId, setPickupCoords, setDropCoords, setRideId, distanceKm, fare, stops, setStops, driverDistance,
     driverDuration, setRideConfirmed, rideConfirmed }: BookingProps) {
     const { user, isSignedIn } = useUser();
-    const router = useRouter();
+    const router: any = useRouter();
     const [pickup, setPickup] = useState("");
     const [drop, setDrop] = useState("");
-    // const [rideId] = useState("");
     const [pickupCoords, setLocalPickupCoords] = useState<[number, number] | null>(null);
     const [dropCoords, setLocalDropCoords] = useState<[number, number] | null>(null);
-    // const [showDriverRoute, setShowDriverRoute] = useState(false);
-    // const [driverDistance, setDriverDistance] = useState<number | null>(null);
-    // const [driverDuration, setDriverDuration] = useState<number | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<any>(null);
+    const [waitingForDriver, setWaitingForDriver] = useState(false);
+    const [paymentTimeout, setPaymentTimeout] = useState<NodeJS.Timeout | null>(null);
+
     const vehicles = [
         {
             id: "bike",
@@ -117,13 +117,16 @@ function Booking({ rideId, setPickupCoords, setDropCoords, setRideId, distanceKm
                     : null
             })),
             distanceKm,
-            fare: totalFare,
+            fare: totalFare.toFixed(2),
+
         });
         socket.emit("new-ride-request", {
             rideId: res.data.rideId
         });
         setRideId(res.data.rideId);
-        alert("Ride booked successfully!");
+        alert("Ride Confirmed successfully!");
+        return res.data.rideId;
+
     };
 
     const cancelRide = async () => {
@@ -135,6 +138,11 @@ function Booking({ rideId, setPickupCoords, setDropCoords, setRideId, distanceKm
         socket.emit("ride-cancelled", { rideId });
 
         alert("Ride cancelled");
+
+        // stop payment navigation
+        if (paymentTimeout) {
+            clearTimeout(paymentTimeout);
+        }
 
         setRideConfirmed(false);
         setRideId("");
@@ -149,7 +157,7 @@ function Booking({ rideId, setPickupCoords, setDropCoords, setRideId, distanceKm
     return (
         <div className='p-2'>
             <h2 className='text-[20px] font-bold'>Booking</h2>
-            <div className='border p-3 rounded-md h-[72vh]'>
+            <div className='border p-2 rounded-md h-[83vh]'>
                 <label htmlFor="" className='text-gray-400'>Where From?</label>
                 <AutoCompleteAddress
                     placeholder="Enter Pickup Location"
@@ -158,6 +166,10 @@ function Booking({ rideId, setPickupCoords, setDropCoords, setRideId, distanceKm
                         const coords: [number, number] = [Number(lat), Number(lon)];
                         setLocalPickupCoords(coords);
                         setPickupCoords(coords);
+                        localStorage.setItem(
+                            "pickupCoords",
+                            JSON.stringify({ lat: coords[0], lng: coords[1] })
+                        );
                     }}
                 />
                 <label htmlFor="" className='text-gray-400'>Where To?</label>
@@ -191,7 +203,7 @@ function Booking({ rideId, setPickupCoords, setDropCoords, setRideId, distanceKm
                     + Add Stop
                 </button>
                 {/* Vehicle Selection */}
-                <div className="mt-6">
+                <div className="mt-3">
                     <h3 className="text-lg font-semibold mb-3">Choose Vehicle</h3>
 
                     <div className="grid grid-cols-3 gap-4">
@@ -221,19 +233,26 @@ function Booking({ rideId, setPickupCoords, setDropCoords, setRideId, distanceKm
 
                     </div>
                 </div>
-                <Cards />
+                <Cards onSelect={(method: any) => setPaymentMethod(method)} />
                 <button
-                    className="bg-black text-white px-4 py-2 rounded-lg"
+                    className="bg-black text-white px-4 py-2 rounded-lg mr-14"
+                    disabled={waitingForDriver}
                     onClick={async () => {
-                        await bookRide(); // existing API call
-                        // setShowDriverRoute(true);
+                        const id = await bookRide(); // existing API call
                         setRideConfirmed(true);
+                        setWaitingForDriver(true);
+                        const timeout = setTimeout(() => {
+                            if (pickup && drop && selectedVehicle && paymentMethod) {
+                                router.push(`/payment?fare=${totalFare.toFixed(2)}&rideId=${id}&method=${paymentMethod?.name}`);
+                            }
+                        }, 5000);
+                        setPaymentTimeout(timeout);
                     }}
                 >
-                    Confirm Ride
+                    {/* Confirm Ride */}{waitingForDriver ? "Searching for driver..." : "Confirm Ride"}
                 </button>
                 <button
-                    className="bg-red-600 text-white px-4 py-2 mt-3 rounded"
+                    className="bg-red-600 text-white px-4 py-2 mt-3 rounded ml-40"
                     onClick={cancelRide}
                 >
                     Cancel Ride
@@ -243,24 +262,19 @@ function Booking({ rideId, setPickupCoords, setDropCoords, setRideId, distanceKm
                         Distance: {distanceKm.toFixed(2)} km
                     </p>
                 )}
-                {/* + calculatedFare.toFixed(2)&& calculatedFare */}
-                {/* fare !== undefined && fare > 0 */}
                 {totalFare > 0 && (
                     <p className="text-lg font-bold text-green-600">
                         Total Fare: ₹{totalFare.toFixed(2)}
                     </p>
                 )}
                 {rideConfirmed && driverDistance && driverDuration && (
-                    <div className="mt-3 text-blue-600 font-semibold">
-                        {/* 🚗 Driver Distance: {driverDistance.toFixed(2)} km <br />
-                        ⏱ Driver Arrival: {driverDuration.toFixed(0)} mins */}
+                    <div className="mt-3 text-blue-600 text-[16px]  font-semibold">
+
                         Driver is {driverDistance.toFixed(2)} km away
                         <br />
                         Arrival in {Math.ceil(driverDuration)} mins
                     </div>
                 )}
-                {/* {rideId && <p>Ride Booked</p>} */}
-                {/* <RideBooking /> */}
             </div>
 
         </div >
