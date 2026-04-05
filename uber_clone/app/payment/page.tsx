@@ -16,7 +16,7 @@ function PaymentContent() {
     console.log("Method from URL:", method);
     useEffect(() => {
         if (!fare) return;
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/payment/create-payment-intent`, {
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/create-payment-intent`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
