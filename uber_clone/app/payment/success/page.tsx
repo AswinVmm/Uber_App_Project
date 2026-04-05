@@ -1,10 +1,10 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import axios from "@/lib/axios";
 
-export default function Success() {
+function SuccessContent() {
     const params = useSearchParams();
 
     const paymentIntent = params.get("payment_intent");
@@ -43,7 +43,7 @@ export default function Success() {
 
             axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/confirm`, {
                 rideId,
-                paymentId: paymentIntent
+                paymentId: paymentIntent,
             });
 
         }
@@ -80,5 +80,12 @@ export default function Success() {
             <p className="mt-3">Transaction Time: {date}</p>
 
         </div>
+    );
+}
+export default function Success() {
+    return (
+        <Suspense fallback={<div className="p-6">Loading...</div>}>
+            <SuccessContent />
+        </Suspense>
     );
 }
