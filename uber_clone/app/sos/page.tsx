@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import axios from "@/lib/axios";
 import { useUser } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 
-export default function SOSPage() {
+function SOSContent() {
 
     const { user } = useUser();
     const searchParams = useSearchParams();
@@ -103,5 +103,13 @@ export default function SOSPage() {
             )}
 
         </div>
+    );
+}
+
+export default function SOSPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <SOSContent />
+        </Suspense>
     );
 }
