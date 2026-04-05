@@ -24,7 +24,7 @@ export default function AutoCompleteAddress({ placeholder, onSelect }: Props) {
             return;
         }
 
-        const res = await fetch(`http://localhost:4000/api/maps/search?q=${value}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/maps/search?q=${value}`);
 
         const data = await res.json();
         setResults(data);

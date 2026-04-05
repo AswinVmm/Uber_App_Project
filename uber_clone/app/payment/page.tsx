@@ -1,4 +1,5 @@
 "use client"
+export const dynamic = "force-dynamic";
 import React, { useEffect, useContext, useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js';
 import CheckOutForm from '@/components/Payment/CheckOutForm';
@@ -15,7 +16,7 @@ function Payment() {
     console.log("Method from URL:", method);
     useEffect(() => {
         if (!fare) return;
-        fetch("http://localhost:4000/api/payment/create-payment-intent", {
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/payment/create-payment-intent`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

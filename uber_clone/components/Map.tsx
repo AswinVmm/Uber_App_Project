@@ -70,7 +70,7 @@ export default function Map({ rideId, pickupCoords, dropCoords, stops, setDistan
             lng: s[1],
         }));
         axios
-            .post("http://localhost:4000/api/maps/route", {
+            .post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/maps/route`, {
                 pickup,
                 drop,
                 stops: formattedStops,

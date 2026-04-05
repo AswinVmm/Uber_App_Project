@@ -27,7 +27,7 @@ export default function Success() {
             return;
         }
 
-        fetch(`http://localhost:4000/api/payment/receipt/${paymentIntent}`)
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/receipt/${paymentIntent}`)
             .then(res => res.json())
             .then(data => {
                 setReceipt(data)
@@ -41,7 +41,7 @@ export default function Success() {
 
         if (rideId && paymentIntent) {
 
-            axios.post("http://localhost:4000/api/payment/confirm", {
+            axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/confirm`, {
                 rideId,
                 paymentId: paymentIntent
             });
