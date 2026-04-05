@@ -25,7 +25,7 @@ function CheckOutForm() {
 
             elements,
             confirmParams: {
-                return_url: `http://localhost:3000/payment/success?rideId=${rideId}`,
+                return_url: `https://uber-app-project.vercel.app/payment/success?rideId=${rideId}`,
             },
         });
         if (error) {
