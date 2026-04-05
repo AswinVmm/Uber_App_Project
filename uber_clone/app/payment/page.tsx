@@ -1,13 +1,13 @@
 "use client"
-export const dynamic = "force-dynamic";
-import React, { useEffect, useContext, useState } from 'react'
+
+import React, { useEffect, useContext, useState, Suspense } from 'react'
 import { loadStripe } from '@stripe/stripe-js';
 import CheckOutForm from '@/components/Payment/CheckOutForm';
 import { Elements } from '@stripe/react-stripe-js';
 import { useSearchParams } from "next/navigation";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-function Payment() {
+function PaymentContent() {
     const [clientSecret, setClientSecret] = useState("");
     const searchParams = useSearchParams();
     const fare = searchParams.get("fare");
@@ -47,5 +47,10 @@ function Payment() {
         </div>
     )
 }
-
-export default Payment;
+export default function Payment() {
+    return (
+        <Suspense fallback={<div>Loading payment...</div>}>
+            <PaymentContent />
+        </Suspense>
+    );
+}
